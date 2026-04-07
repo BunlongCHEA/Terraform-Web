@@ -7,25 +7,28 @@ import (
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
-	// Serve Vue.js frontend
-	r.Static("/assets", "./web/dist/assets")
-	r.StaticFile("/", "./web/dist/index.html")
+	// Serve Next.js exported static files (next build && next export → out/)
+	r.Static("/_next", "./web/out/_next")
+	r.StaticFile("/favicon.ico", "./web/out/favicon.ico")
+	r.NoRoute(func(c *gin.Context) {
+		c.File("./web/out/index.html")
+	})
 
 	// API routes
 	v1 := r.Group("/api")
-	{
-		// Auth
-		v1.POST("/login", Login)
 
-		// Protected routes
-		auth := v1.Group("/")
-		auth.Use(AuthMiddleware())
-		{
-			auth.GET("/projects", GetProjects)
-			auth.POST("/tasks/run", RunTask)        // trigger terraform_run.sh
-			auth.GET("/tasks", GetTasks)            // job history
-			auth.GET("/tasks/:id/logs", StreamLogs) // WebSocket live logs
-		}
+	// Public
+	v1.POST("/login", Login)
+
+	// Protected — auth middleware applied per-route group
+	protected := v1.Group("/")
+	protected.Use(AuthMiddleware())
+	{
+		protected.GET("/projects", GetProjects)
+		protected.POST("/projects", CreateProject)
+		protected.POST("/tasks/run", RunTask)
+		protected.GET("/tasks", GetTasks)
+		protected.GET("/tasks/:id/logs", StreamLogs)
 	}
 
 	return r

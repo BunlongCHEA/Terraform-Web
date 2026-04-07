@@ -3,6 +3,8 @@ package main
 import (
 	"Terraform-Web/api"
 	"Terraform-Web/db"
+	"log"
+	"os"
 )
 
 func main() {
@@ -11,5 +13,14 @@ func main() {
 
 	// Start HTTP server
 	r := api.SetupRouter()
-	r.Run(":8080")
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("[SERVER] Starting on :%s", port)
+	if err := r.Run(":" + port); err != nil {
+		log.Fatalf("[SERVER] Failed to start: %v", err)
+	}
 }

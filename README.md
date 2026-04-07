@@ -2,27 +2,34 @@
 
 ```bash
 terraform-gui/
-├── main.go                  # Entry point
+├── main.go
 ├── go.mod
 ├── api/
-│   ├── router.go            # HTTP routes
-│   ├── auth.go              # JWT login/logout
-│   ├── projects.go          # Project management
-│   └── tasks.go             # Run terraform/ansible jobs
+│   ├── router.go
+│   ├── auth.go
+│   ├── tasks.go
+│   └── projects.go
 ├── services/
-│   ├── runner.go            # Execute shell commands (terraform_run.sh)
-│   ├── job_queue.go         # Queue & manage long-running jobs
-│   └── websocket.go         # Stream live logs to browser
-├── db/
-│   └── sqlite.go            # Store job history, users
-├── web/                     # Vue.js frontend
-│   ├── src/
-│   │   ├── views/
-│   │   │   ├── Dashboard.vue
-│   │   │   ├── RunJob.vue   # Trigger terraform/ansible
-│   │   │   └── Logs.vue     # Live log streaming
-│   │   ├── components/
-│   │   └── main.js
+│   ├── runner.go         ← Updated: URL repo + local path
+│   ├── repo.go           ← Git clone logic
+│   ├── tfvars_writer.go  ← Write terraform.tfvars from UI input
+│   ├── websocket.go
+│   └── job_queue.go
+├── web/                  ← Next.js + TailwindCSS
+│   ├── app/
+│   │   ├── layout.tsx
+│   │   ├── page.tsx                    ← Dashboard
+│   │   └── configure/
+│   │       └── page.tsx                ← Cloud provider config
+│   ├── components/
+│   │   ├── CloudProviderSelector.tsx   ← DO vs GKE switcher
+│   │   ├── DigitalOceanForm.tsx        ← DO tfvars inputs
+│   │   ├── GKEForm.tsx                 ← GKE tfvars inputs
+│   │   ├── SSHKeyInput.tsx             ← SSH key upload or path
+│   │   ├── RepoSourceInput.tsx         ← URL or local path
+│   │   ├── ActionButtons.tsx           ← Run/Plan/Destroy etc.
+│   │   └── LogPanel.tsx                ← Live WebSocket log stream
+│   ├── tailwind.config.ts
 │   └── package.json
 └── Dockerfile
 ```
