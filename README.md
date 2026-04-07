@@ -27,3 +27,25 @@ terraform-gui/
 └── Dockerfile
 ```
 
+II. How to Start
+
+## 1. Go: Start
+Initialize Go module and download dependencies
+```bash
+go mod init Terraform-Web
+go mod tidy
+```
+
+Or run locally, but need to start PostgreSQL First
+Then run:
+```bash
+go run .
+```
+
+## 2. Next.JS: Start
+
+```bash
+cd web
+npx create-next-app@latest . --typescript --tailwind --app --src-dir
+npm install axios
+```
