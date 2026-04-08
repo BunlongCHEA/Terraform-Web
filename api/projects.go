@@ -2,6 +2,7 @@ package api
 
 import (
 	"Terraform-Web/db"
+	"Terraform-Web/services"
 	"net/http"
 	"time"
 
@@ -71,4 +72,28 @@ func CreateProject(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"id": id, "message": "Project created"})
+}
+
+// BrowseRepo resolves the repo (clone or local) and returns a directory listing
+func BrowseRepo(c *gin.Context) {
+	var src services.RepoSource
+	if err := c.ShouldBindJSON(&src); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
+		return
+	}
+
+	files, resolvedPath, err := services.ListRepoFiles(src)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":         err.Error(),
+			"resolved_path": resolvedPath,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"resolved_path": resolvedPath,
+		"files":         files,
+		"count":         len(files),
+	})
 }

@@ -56,3 +56,60 @@ cd web
 npx create-next-app@latest . --typescript --tailwind --app --src-dir
 npm install axios
 ```
+
+Then run locally:
+```bash
+npm run dev
+```
+
+## 3. Connect to Postgres: Run on Window WSL
+
++ Find your Windows IP from WSL
+
+If run on Widow WSL Ubuntu, and require to connect DB Postgres
+```bash
+cat /etc/resolv.conf | grep nameserver | awk '{print $2}'
+
+# OR
+
+ip route show default | awk '{print $3}'
+```
+
++ Allow PostgreSQL on Windows to accept WSL connections
+
+Open pg_hba.conf on Windows (usually at):
+```bash
+C:\Program Files\PostgreSQL\17\data\pg_hba.conf
+```
+
+Add this line at the bottom:
+```bash
+host    all    all    172.31.0.0/16    md5
+```
+The 172.31.0.0/16 covers all WSL IP ranges — safe for local dev.
+
++ Allow PostgreSQL to listen on all interfaces
+
+Open postgresql.conf on Windows (same folder):
+```bash
+C:\Program Files\PostgreSQL\17\data\postgresql.conf
+```
+
+Find and change:
+```bash
+listen_addresses = '*'
+```
+
++ Restart PostgreSQL on Windows
+
+```bash
+# Run in Windows PowerShell as Admin
+Restart-Service postgresql-x64-16
+```
+
++ Open the Windows Firewall
+
+- # Windows Defender Firewall with Advanced Security #
+- # Inbound Rules # > # New Rule #
+- # Port # > # TCP # > Specific local ports: # 5433 # (based on postgres config port)
+- # Allow the connection #

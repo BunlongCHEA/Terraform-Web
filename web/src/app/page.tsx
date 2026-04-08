@@ -1,5 +1,6 @@
 "use client"
 import { useState, useRef, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import RepoSourceInput, { type RepoSource } from "@/components/RepoSourceInput"
 import SSHKeyInput, { type SSHKeyData } from "@/components/SSHKeyInput"
 import DigitalOceanForm, { type DOVars } from "@/components/DigitalOceanForm"
@@ -12,6 +13,7 @@ import axios, { AxiosError } from "axios"
 type Provider = "digitalocean" | "gke"
 
 export default function Dashboard() {
+  const router  = useRouter()
   const [provider, setProvider] = useState<Provider>("digitalocean")
   const [repoSrc, setRepoSrc] = useState<RepoSource>({ type: "url" })
   const [sshKey, setSSHKey] = useState<SSHKeyData>({ mode: "path" })
@@ -22,12 +24,25 @@ export default function Dashboard() {
   const logBoxRef = useRef<HTMLDivElement>(null)
   const wsRef = useRef<WebSocket | null>(null)
 
+  // Auth guard
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (!token) {
+      router.push("/login")
+    }
+  }, [router])
+
   // Auto-scroll logs to bottom
   useEffect(() => {
     if (logBoxRef.current) {
       logBoxRef.current.scrollTop = logBoxRef.current.scrollHeight
     }
   }, [logs])
+
+  const handleLogout = () => {
+    localStorage.removeItem("token")
+    router.push("/login")
+  }
 
   const runJob = async (option: string) => {
     setLogs([])
@@ -51,8 +66,10 @@ export default function Dashboard() {
       const taskId = res.data.task_id as string
 
       // Open WebSocket for live log streaming
-      const wsUrl = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/api/tasks/${taskId}/logs`
-      const ws = new WebSocket(wsUrl)
+      // WebSocket: token passed as query param (browsers can't send headers)
+      const wsProto = window.location.protocol === "https:" ? "wss" : "ws"
+      const wsUrl   = `${wsProto}://${window.location.host}/api/tasks/${taskId}/logs?token=${encodeURIComponent(token ?? "")}`
+      const ws      = new WebSocket(wsUrl)
       wsRef.current = ws
 
       ws.onmessage = (e: MessageEvent<string>) => {
@@ -73,6 +90,13 @@ export default function Dashboard() {
     } catch (err: unknown) {
       // Typed error handling — no 'any' needed
       if (err instanceof AxiosError) {
+        // Token expired — redirect to login
+        if (err.response?.status === 401) {
+          localStorage.removeItem("token")
+          router.push("/login")
+          return
+        }
+        
         const message = (err.response?.data as { error?: string })?.error ?? err.message
         setLogs([`[ERROR] ${message}`])
       } else if (err instanceof Error) {
@@ -89,9 +113,17 @@ export default function Dashboard() {
       <div className="max-w-5xl mx-auto space-y-6">
 
         {/* Header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-white">🚀 Terraform &amp; Ansible Control Panel</h1>
-          <p className="text-gray-400 mt-1">Deploy and manage your cloud infrastructure from the browser</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-white">🚀 Terraform &amp; Ansible Control Panel</h1>
+            <p className="text-gray-400 mt-1 text-sm">Deploy and manage your cloud infrastructure from the browser</p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="text-sm text-gray-400 hover:text-white px-3 py-1.5 rounded-lg border border-gray-700 hover:border-gray-500 transition-all"
+          >
+            Sign out
+          </button>
         </div>
 
         {/* Cloud Provider Selector */}

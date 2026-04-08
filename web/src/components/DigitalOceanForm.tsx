@@ -15,7 +15,7 @@ export default function DigitalOceanForm({ onChange }: { onChange: (v: DOVars) =
   const [vars, setVars] = useState<DOVars>({
     doToken: "", region: "sgp1", dropletOS: "ubuntu-24-04-x64",
     dropletSize: "s-1vcpu-2gb", dropletCount: 1,
-    sshKeyName: "terraform-ansible-key", projectName: "ansible-lab"
+    sshKeyName: "terraform-ansible-key", projectName: "terraform-ansible"
   })
 
   const update = (patch: Partial<DOVars>) => {

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // RunTaskRequest matches the full payload sent from the Next.js frontend
@@ -99,8 +100,26 @@ func RunTask(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"task_id": taskID})
 }
 
-// StreamLogs upgrades to WebSocket and streams live logs for a task
+// StreamLogs upgrades to WebSocket and streams live logs.
+// Auth is via ?token=<jwt> query parameter because browsers
+// cannot send custom headers with the WebSocket API.
 func StreamLogs(c *gin.Context) {
+	// Validate JWT from query param
+	tokenStr := c.Query("token")
+	if tokenStr == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing token query parameter"})
+		return
+	}
+
+	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+		return jwtSecret, nil
+	})
+	if err != nil || !token.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+
+	// Find log channel
 	taskID := c.Param("id")
 
 	taskLogsMu.RLock()
