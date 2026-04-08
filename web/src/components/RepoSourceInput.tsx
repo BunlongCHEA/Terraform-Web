@@ -221,8 +221,8 @@ export default function RepoSourceInput({ onChange }: { onChange: (v: RepoSource
           </div>
 
           <p className="text-gray-500 text-xs">
-            💡 Windows paths like <code className="text-purple-300">D:\1-Git\Terraform-Plan</code> are
-            automatically converted to <code className="text-purple-300">/mnt/d/1-Git/Terraform-Plan</code> for WSL.
+            💡 Windows paths like <code className="text-purple-300">D:\Terraform</code> are
+            automatically converted to <code className="text-purple-300">/mnt/d/Terraform</code> for WSL.
             The Go server must run inside WSL for this to work.
           </p>
         </div>

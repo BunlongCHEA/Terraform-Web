@@ -143,7 +143,7 @@ func normalizePath(path string) string {
 		return filepath.Clean(path)
 	}
 
-	// Windows absolute path: D:\1-Git\Terraform-Plan
+	// Windows absolute path: D:\Terraform
 	// Detect by pattern X:\ or X:/
 	if len(path) >= 3 && path[1] == ':' {
 		driveLetter := strings.ToLower(string(path[0]))
